@@ -1,6 +1,7 @@
 package com.example.videoserver.controller;
 
 import com.example.videoserver.ConfigParams;
+import com.example.videoserver.entities.SubVideoDescriptionEntity;
 import com.example.videoserver.entities.VideoDescriptionEntity;
 import com.example.videoserver.utils.FileUtils;
 import com.example.videoserver.utils.VideoImageUtils;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -88,7 +88,7 @@ public class VideoDescriptionController {
     private void getVideoDescriptionItemByFile(
             int id, String title, String videoFileName,
             Map<String, VideoDescriptionEntity> descriptionMap) {
-        List<Map<String, String>> subImageList = new CopyOnWriteArrayList<>();
+        List<SubVideoDescriptionEntity> subImageList = new CopyOnWriteArrayList<>();
 
         getVideoDescriptionItem(videoFileName, subImageList);
         descriptionMap.put(Integer.toString(id), new VideoDescriptionEntity(title, subImageList));
@@ -100,7 +100,7 @@ public class VideoDescriptionController {
     ) {
         // 子线程池处理视频抽帧任务
         ExecutorService subVideoDescriptionTaskExecutor = Executors.newFixedThreadPool(3);
-        List<Map<String, String>> subImageList = new CopyOnWriteArrayList<>();
+        List<SubVideoDescriptionEntity> subImageList = new CopyOnWriteArrayList<>();
 
         for (File file: fileArr) {
             if(file.isFile()) {
@@ -121,13 +121,9 @@ public class VideoDescriptionController {
         descriptionMap.put(Integer.toString(id), new VideoDescriptionEntity(title, subImageList));
     }
 
-    private void getVideoDescriptionItem(String videoFileName, List<Map<String, String>> subImageList) {
+    private void getVideoDescriptionItem(String videoFileName, List<SubVideoDescriptionEntity> subImageList) {
         String image = VideoImageUtils.getVideoImageToBase64(ConfigParams.ROOT_DIR + videoFileName, 0);
-        Map<String, String> subImage = new HashMap<>();
-        subImage.put(videoFileName, image);
-        subImageList.add(subImage);
-        subImage.put(videoFileName, image);
-        subImageList.add(subImage);
+        subImageList.add(new SubVideoDescriptionEntity(videoFileName, image));
     }
 
     @GetMapping(value = "/descriptionNameList")

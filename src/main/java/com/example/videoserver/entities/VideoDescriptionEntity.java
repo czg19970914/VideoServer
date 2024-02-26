@@ -14,9 +14,9 @@ public class VideoDescriptionEntity {
 //    private String image;
 
     // 子视频的文件路径和缩略图的base64字符串
-    private List<Map<String, String>> subImages;
+    private List<SubVideoDescriptionEntity> subImages;
 
-    public VideoDescriptionEntity(String title, List<Map<String, String>> subImages) {
+    public VideoDescriptionEntity(String title, List<SubVideoDescriptionEntity> subImages) {
         this.title = title;
         this.subImages = subImages;
     }
@@ -29,11 +29,11 @@ public class VideoDescriptionEntity {
         this.title = title;
     }
 
-    public List<Map<String, String>> getSubImages() {
+    public List<SubVideoDescriptionEntity> getSubImages() {
         return subImages;
     }
 
-    public void setSubImages(List<Map<String, String>> subImages) {
+    public void setSubImages(List<SubVideoDescriptionEntity> subImages) {
         this.subImages = subImages;
     }
 }
