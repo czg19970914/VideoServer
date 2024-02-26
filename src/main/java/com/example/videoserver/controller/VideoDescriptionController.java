@@ -15,39 +15,30 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 
 @RestController
 public class VideoDescriptionController {
-//    public ResponseEntity<Map<String, Map<String, List<VideoDescriptionEntity>>>> getVideoDescriptionMap(
-//
-//    ) {
-//        if(!FileUtils.isDirectoryExist(ConfigParams.ROOT_DIR)) {
-//            return null;
-//        }
-//        Map<String, Map<String, List<VideoDescriptionEntity>>> descriptionMap = new HashMap<>();
-//        File rootFile = new File(ConfigParams.ROOT_DIR);
-//        // 第一层的文件夹，是bar上的名字
-//        File[] firstFileArr = rootFile.listFiles();
-//        return null;
-//    }
 
     /**
-     * http://127.0.0.1:8080/videoDescription?select_name=Bilibili 访问
+     * http://127.0.0.1:8080/videoDescription?select_name=Bilibili
+     * http://127.0.0.1:8080/videoDescription?select_name=temp&min_id=1&max_id=23
      * **/
     @GetMapping(value = "/videoDescription")
     public ResponseEntity<Map<String, VideoDescriptionEntity>> getVideoDescriptionMap(
-            @RequestParam(value = "select_name", required=false) String select_name
+            @RequestParam(value = "select_name", required=false) String selectName,
+            @RequestParam(value = "min_id", required=false) int minId,
+            @RequestParam(value = "max_id", required=false) int maxId
     ) {
-        if(select_name == null || select_name.isEmpty()){
+        if(selectName == null || selectName.isEmpty()){
             return null;
         }
         if(!FileUtils.isDirectoryExist(ConfigParams.ROOT_DIR)) {
             return null;
         }
-        int id = 0;
-        Map<String, VideoDescriptionEntity> descriptionMap = new HashMap<>();
+        Map<String, VideoDescriptionEntity> descriptionMap = new ConcurrentHashMap<>();
         // 根据名字找到第二层文件夹或者直接是视频
-        File secondFile = new File(ConfigParams.ROOT_DIR, select_name);
+        File secondFile = new File(ConfigParams.ROOT_DIR, selectName);
         if(!secondFile.exists() || !secondFile.isDirectory()) {
             return null;
         }
@@ -55,37 +46,88 @@ public class VideoDescriptionController {
         if(secondFileArr == null) {
             return null;
         }
+        // 创建线程池来执行耗时的视频抽帧工作，里面可能会开子线程池
+        ExecutorService videoDescriptionTaskExecutor = Executors.newFixedThreadPool(2);
+        int id = 0;
         for(File f : secondFileArr) {
-            if (f.isDirectory()) {
-                File[] thirdFileArr = f.listFiles();
-                if (thirdFileArr == null) {
-                    continue;
-                }
-                List<Map<String, String>> subImageList = new ArrayList<>();
-                for (File thirdFile : thirdFileArr) {
-                    if (thirdFile.isFile()) {
-                        String videoFileName =  File.separator + select_name + File.separator + f.getName() + File.separator + thirdFile.getName();
-                        String image = VideoImageUtils.getVideoImageToBase64(ConfigParams.ROOT_DIR + videoFileName, 0);
-                        Map<String, String> subImage = new HashMap<>();
-                        subImage.put(videoFileName, image);
-                        subImageList.add(subImage);
+            if (id >= minId && id <= maxId) {
+                if (f.isDirectory()) {
+                    File[] thirdFileArr = f.listFiles();
+                    if (thirdFileArr == null) {
+                        continue;
                     }
+                    int finalId1 = id;
+                    videoDescriptionTaskExecutor.execute(() -> {
+                        getVideoDescriptionItemByDirector(finalId1, f.getName(),
+                                File.separator + selectName + File.separator + f.getName(),
+                                thirdFileArr, descriptionMap);
+                    });
+                } else if (f.isFile()) {
+                    int finalId = id;
+                    String videoFileName = File.separator + selectName + File.separator + f.getName();
+                    videoDescriptionTaskExecutor.execute(() -> {
+                        getVideoDescriptionItemByFile(finalId, f.getName(), videoFileName, descriptionMap);
+                    });
                 }
-                descriptionMap.put(Integer.toString(id), new VideoDescriptionEntity(f.getName(), subImageList));
-                id++;
-            } else if (f.isFile()) {
-                String videoFileName = File.separator + select_name + File.separator + f.getName();
-                String image = VideoImageUtils.getVideoImageToBase64(ConfigParams.ROOT_DIR + videoFileName, 0);
-                List<Map<String, String>> subImageList = new ArrayList<>();
-                Map<String, String> subImage = new HashMap<>();
-                subImage.put(videoFileName, image);
-                subImageList.add(subImage);
-                descriptionMap.put(Integer.toString(id), new VideoDescriptionEntity(f.getName(), subImageList));
-                id++;
+            } else if(id > maxId) {
+                break;
+            }
+            id++;
+        }
+        videoDescriptionTaskExecutor.shutdown();
+        try {
+            if(!videoDescriptionTaskExecutor.awaitTermination(3, TimeUnit.MINUTES)) {
+                videoDescriptionTaskExecutor.shutdownNow();
+            }
+        } catch (InterruptedException ex) {
+            videoDescriptionTaskExecutor.shutdownNow();
+        }
+        return new ResponseEntity<>(descriptionMap, HttpStatus.OK);
+    }
+
+    private void getVideoDescriptionItemByFile(
+            int id, String title, String videoFileName,
+            Map<String, VideoDescriptionEntity> descriptionMap) {
+        List<Map<String, String>> subImageList = new CopyOnWriteArrayList<>();
+
+        getVideoDescriptionItem(videoFileName, subImageList);
+        descriptionMap.put(Integer.toString(id), new VideoDescriptionEntity(title, subImageList));
+    }
+
+    private void getVideoDescriptionItemByDirector(
+            int id, String title, String lastFilePath, File[] fileArr,
+            Map<String, VideoDescriptionEntity> descriptionMap
+    ) {
+        // 子线程池处理视频抽帧任务
+        ExecutorService subVideoDescriptionTaskExecutor = Executors.newFixedThreadPool(3);
+        List<Map<String, String>> subImageList = new CopyOnWriteArrayList<>();
+
+        for (File file: fileArr) {
+            if(file.isFile()) {
+                String videoFileName = lastFilePath + File.separator + file;
+                subVideoDescriptionTaskExecutor.execute(() -> {
+                    getVideoDescriptionItem(videoFileName, subImageList);
+                });
             }
         }
+        subVideoDescriptionTaskExecutor.shutdown();
+        try {
+            if (!subVideoDescriptionTaskExecutor.awaitTermination(90, TimeUnit.SECONDS)) {
+                subVideoDescriptionTaskExecutor.shutdownNow();
+            }
+        } catch (InterruptedException ex) {
+            subVideoDescriptionTaskExecutor.shutdownNow();
+        }
+        descriptionMap.put(Integer.toString(id), new VideoDescriptionEntity(title, subImageList));
+    }
 
-        return new ResponseEntity<>(descriptionMap, HttpStatus.OK);
+    private void getVideoDescriptionItem(String videoFileName, List<Map<String, String>> subImageList) {
+        String image = VideoImageUtils.getVideoImageToBase64(ConfigParams.ROOT_DIR + videoFileName, 0);
+        Map<String, String> subImage = new HashMap<>();
+        subImage.put(videoFileName, image);
+        subImageList.add(subImage);
+        subImage.put(videoFileName, image);
+        subImageList.add(subImage);
     }
 
     @GetMapping(value = "/descriptionNameList")
