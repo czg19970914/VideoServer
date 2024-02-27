@@ -48,7 +48,7 @@ public class VideoDescriptionController {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
         List<String> nameList = new ArrayList<>();
-        Map<String, VideoDescriptionEntity> VideoDescriptionContent = new HashMap<>();
+        Map<String, List<VideoDescriptionEntity>>VideoDescriptionContent = new HashMap<>();
         for(File firstFile : firstFileArr) {
             if(firstFile == null || !firstFile.isDirectory() || firstFile.getName().equals("Pictures")) {
                 continue;
@@ -59,6 +59,7 @@ public class VideoDescriptionController {
             }
             // 标识是否加入nameList
             boolean addNameFlag = false;
+            List<VideoDescriptionEntity> videoDescriptionEntities = new ArrayList<>();
             // 第二层是视频文件或者文件夹
             for(File secondFile : secondFileArr) {
                 List<SubVideoDescriptionEntity> subVideoDescriptionEntities = new ArrayList<>();
@@ -80,7 +81,7 @@ public class VideoDescriptionController {
                     if(!subVideoDescriptionEntities.isEmpty()) {
                         // 拿子视频的第一页作为总体的图片显示
                         String imageName = subVideoDescriptionEntities.get(0).getSubImageName();
-                        VideoDescriptionContent.put(firstFile.getName(),
+                        videoDescriptionEntities.add(
                                 new VideoDescriptionEntity(title, imageName, subVideoDescriptionEntities));
                         addNameFlag = true;
                     }
@@ -88,13 +89,15 @@ public class VideoDescriptionController {
                     String title = firstFile.getName();
                     String imageName = firstFile.getName() + "_" + secondFile.getName() + ".jpg";
                     subVideoDescriptionEntities.add(new SubVideoDescriptionEntity(imageName));
-                    VideoDescriptionContent.put(firstFile.getName(),
+                    videoDescriptionEntities.add(
                             new VideoDescriptionEntity(title, imageName, subVideoDescriptionEntities));
                     addNameFlag = true;
                 }
             }
-            if(addNameFlag)
+            if(addNameFlag) {
                 nameList.add(firstFile.getName());
+                VideoDescriptionContent.put(firstFile.getName(), videoDescriptionEntities);
+            }
         }
 
         return new ResponseEntity<>(new VideoDescriptionResponse(nameList, VideoDescriptionContent), HttpStatus.OK);
