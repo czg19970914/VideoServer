@@ -5,11 +5,16 @@ import com.example.videoserver.entities.SubVideoDescriptionEntity;
 import com.example.videoserver.entities.VideoDescriptionEntity;
 import com.example.videoserver.entities.VideoDescriptionResponse;
 import com.example.videoserver.utils.FileUtils;
+import com.example.videoserver.utils.VideoImageUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,24 +23,7 @@ import java.util.Map;
 
 @RestController
 public class VideoDescriptionController {
-    @GetMapping(value = "/descriptionNameList")
-    public ResponseEntity<List<String>> getVideoDescriptionBarNames() {
-        if(!FileUtils.isDirectoryExist(ConfigParams.ROOT_DIR)) {
-            return null;
-        }
-        List<String> videoDescriptionBarNames = new ArrayList<>();
-        File rootFile = new File(ConfigParams.ROOT_DIR);
-        // 第一层的文件夹，是bar上的名字
-        File[] firstFileArr = rootFile.listFiles();
-        if(firstFileArr == null) {
-            return null;
-        }
-        for(File f : firstFileArr) {
-            videoDescriptionBarNames.add(f.getName());
-        }
-        return new ResponseEntity<>(videoDescriptionBarNames, HttpStatus.OK);
-    }
-
+    private static final String IMAGE_ROOT_DIR = ConfigParams.ROOT_DIR + File.separator + "Pictures" + File.separator;
     @GetMapping(value = "/videoDescriptionData")
     public ResponseEntity<VideoDescriptionResponse> getVideoDescriptionData() {
         if(!FileUtils.isDirectoryExist(ConfigParams.ROOT_DIR)) {
@@ -101,5 +89,26 @@ public class VideoDescriptionController {
         }
 
         return new ResponseEntity<>(new VideoDescriptionResponse(nameList, VideoDescriptionContent), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/videoImageBytes")
+    public ResponseEntity<byte[]> getVideoImageBytes(
+            @RequestParam(value = "image_file_path", required = false) String imageFilePath
+    ) {
+        String absoluteImageFilePath = IMAGE_ROOT_DIR + imageFilePath;
+        if (FileUtils.isFileExist(absoluteImageFilePath)) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        try {
+            File imageFile = new File(absoluteImageFilePath);
+            BufferedImage bufferedImage = ImageIO.read(imageFile);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, VideoImageUtils.DEFAULT_IMG_FORMAT, outputStream);
+            byte[] imageBytes = outputStream.toByteArray();
+            return new ResponseEntity<>(imageBytes, HttpStatus.OK);
+        } catch (Exception e) {
+            System.out.println("获取图片有误：" + imageFilePath);
+        }
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
     }
 }
