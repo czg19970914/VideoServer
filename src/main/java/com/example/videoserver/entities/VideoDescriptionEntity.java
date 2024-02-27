@@ -7,12 +7,17 @@ public class VideoDescriptionEntity {
     // 该视频的标题
     private String title;
 
-    // 子视频的文件路径和缩略图的base64字符串
-    private List<SubVideoDescriptionEntity> subImages;
+    // 展示图片
+    private String imageName;
 
-    public VideoDescriptionEntity(String title, List<SubVideoDescriptionEntity> subImages) {
+    // 子视频列表
+    private List<SubVideoDescriptionEntity> subVideoDescriptionEntities;
+
+    public VideoDescriptionEntity(String title, String imageName,
+                                  List<SubVideoDescriptionEntity> subVideoDescriptionEntities) {
         this.title = title;
-        this.subImages = subImages;
+        this.imageName = imageName;
+        this.subVideoDescriptionEntities = subVideoDescriptionEntities;
     }
 
     public String getTitle() {
@@ -23,11 +28,19 @@ public class VideoDescriptionEntity {
         this.title = title;
     }
 
-    public List<SubVideoDescriptionEntity> getSubImages() {
-        return subImages;
+    public String getImageName() {
+        return imageName;
     }
 
-    public void setSubImages(List<SubVideoDescriptionEntity> subImages) {
-        this.subImages = subImages;
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
+    }
+
+    public List<SubVideoDescriptionEntity> getSubVideoDescriptionEntities() {
+        return subVideoDescriptionEntities;
+    }
+
+    public void setSubVideoDescriptionEntities(List<SubVideoDescriptionEntity> subVideoDescriptionEntities) {
+        this.subVideoDescriptionEntities = subVideoDescriptionEntities;
     }
 }
