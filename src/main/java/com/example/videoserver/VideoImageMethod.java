@@ -4,7 +4,6 @@ import com.example.videoserver.utils.FileUtils;
 import com.example.videoserver.utils.VideoImageUtils;
 
 import java.io.File;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -45,8 +44,9 @@ public class VideoImageMethod {
                             String targetFilePath = IMAGE_ROOT_DIR +
                                     firstFile.getName() + "_" + secondFile.getName() + "_" + thirdFile.getName() + ".jpg";
                             videoImageTaskExecutor.execute(() -> {
-                                VideoImageUtils.getVideoImageToJpg(videoFilePath, targetFilePath, 0);
+                                VideoImageUtils.fetchFrame(videoFilePath, targetFilePath);
                             });
+//                            VideoImageUtils.fetchFrame(videoFilePath, targetFilePath);
                         }
                     }
                 } else if (secondFile.isFile()) {
@@ -56,8 +56,9 @@ public class VideoImageMethod {
 //                    if(!FileUtils.isFileExist(targetFilePath))
 //                        VideoImageUtils.getVideoImageToJpg(videoFilePath, targetFilePath, 0);
                     videoImageTaskExecutor.execute(() -> {
-                        VideoImageUtils.getVideoImageToJpg(videoFilePath, targetFilePath, 0);
+                        VideoImageUtils.fetchFrame(videoFilePath, targetFilePath);
                     });
+//                    VideoImageUtils.fetchFrame(videoFilePath, targetFilePath);
                 }
             }
         }

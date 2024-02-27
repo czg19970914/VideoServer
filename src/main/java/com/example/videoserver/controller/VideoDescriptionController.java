@@ -6,6 +6,7 @@ import com.example.videoserver.entities.VideoDescriptionEntity;
 import com.example.videoserver.entities.VideoDescriptionResponse;
 import com.example.videoserver.utils.FileUtils;
 import com.example.videoserver.utils.VideoImageUtils;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -92,11 +93,11 @@ public class VideoDescriptionController {
     }
 
     @GetMapping(value = "/videoImageBytes")
-    public ResponseEntity<byte[]> getVideoImageBytes(
+    public ResponseEntity<Map<String, String>> getVideoImageBytes(
             @RequestParam(value = "image_file_path", required = false) String imageFilePath
     ) {
         String absoluteImageFilePath = IMAGE_ROOT_DIR + imageFilePath;
-        if (FileUtils.isFileExist(absoluteImageFilePath)) {
+        if (!FileUtils.isFileExist(absoluteImageFilePath)) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
         try {
@@ -104,8 +105,11 @@ public class VideoDescriptionController {
             BufferedImage bufferedImage = ImageIO.read(imageFile);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ImageIO.write(bufferedImage, VideoImageUtils.DEFAULT_IMG_FORMAT, outputStream);
-            byte[] imageBytes = outputStream.toByteArray();
-            return new ResponseEntity<>(imageBytes, HttpStatus.OK);
+            Base64 base = new Base64();
+            String base64 = base.encodeToString(outputStream.toByteArray());
+            Map<String, String> map = new HashMap<>();
+            map.put("imageBase64Str", base64);
+            return new ResponseEntity<>(map, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println("获取图片有误：" + imageFilePath);
         }
