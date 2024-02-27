@@ -6,12 +6,12 @@ import java.util.Map;
 public class VideoDescriptionResponse {
     private List<String> nameList;
 
-    private Map<String, VideoDescriptionEntity> VideoDescriptionContent;
+    private Map<String, VideoDescriptionEntity> videoDescriptionContent;
 
     public VideoDescriptionResponse(List<String> nameList,
-                                    Map<String, VideoDescriptionEntity> VideoDescriptionContent) {
+                                    Map<String, VideoDescriptionEntity> videoDescriptionContent) {
         this.nameList = nameList;
-        this.VideoDescriptionContent = VideoDescriptionContent;
+        this.videoDescriptionContent = videoDescriptionContent;
     }
 
     public List<String> getNameList() {
@@ -23,10 +23,10 @@ public class VideoDescriptionResponse {
     }
 
     public Map<String, VideoDescriptionEntity> getVideoDescriptionContent() {
-        return VideoDescriptionContent;
+        return videoDescriptionContent;
     }
 
     public void setVideoDescriptionContent(Map<String, VideoDescriptionEntity> videoDescriptionContent) {
-        VideoDescriptionContent = videoDescriptionContent;
+        this.videoDescriptionContent = videoDescriptionContent;
     }
 }
