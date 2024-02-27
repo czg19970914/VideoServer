@@ -7,12 +7,6 @@ public class VideoDescriptionEntity {
     // 该视频的标题
     private String title;
 
-    // 视频文件的相对地址和名字
-//    private String videoFileName;
-
-    // 视频文件的缩略图，最外层的缩略图的base64字符串
-//    private String image;
-
     // 子视频的文件路径和缩略图的base64字符串
     private List<SubVideoDescriptionEntity> subImages;
 

@@ -22,7 +22,7 @@ public class VideoDescriptionController {
 
     /**
      * http://127.0.0.1:8080/videoDescription?select_name=Bilibili
-     * http://127.0.0.1:8080/videoDescription?select_name=temp&min_id=1&max_id=23
+     * http://127.0.0.1:8080/videoDescription?select_name=Bilibili&min_id=1&max_id=23
      * **/
     @GetMapping(value = "/videoDescription")
     public ResponseEntity<Map<String, VideoDescriptionEntity>> getVideoDescriptionMap(
@@ -101,10 +101,9 @@ public class VideoDescriptionController {
         // 子线程池处理视频抽帧任务
         ExecutorService subVideoDescriptionTaskExecutor = Executors.newFixedThreadPool(3);
         List<SubVideoDescriptionEntity> subImageList = new CopyOnWriteArrayList<>();
-
         for (File file: fileArr) {
             if(file.isFile()) {
-                String videoFileName = lastFilePath + File.separator + file;
+                String videoFileName = lastFilePath + File.separator + file.getName();
                 subVideoDescriptionTaskExecutor.execute(() -> {
                     getVideoDescriptionItem(videoFileName, subImageList);
                 });
@@ -143,4 +142,5 @@ public class VideoDescriptionController {
         }
         return new ResponseEntity<>(videoDescriptionBarNames, HttpStatus.OK);
     }
+
 }
