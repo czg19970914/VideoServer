@@ -1,7 +1,9 @@
 package com.example.videoserver.controller;
 
 import com.example.videoserver.ConfigParams;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +30,7 @@ public class VideoPlayerController {
         String videoFilePath = ConfigParams.ROOT_DIR + file_name;
         try {
             File videoFile = new File(videoFilePath);
+            System.out.println(videoFilePath);
             InputStream inputStream = new FileInputStream(videoFile);
 
             HttpHeaders headers = new HttpHeaders();
@@ -40,5 +43,22 @@ public class VideoPlayerController {
 
         }
         return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+    }
+
+    /**使用: http://127.0.0.1:8080/videoPlay?file_name=/Bilibili/洛丽塔大哥/1.mp4 访问*/
+    @GetMapping(value = "/videoPlay")
+    public ResponseEntity<Resource> videoPlay(
+            @RequestParam(value = "file_name", required=false) String file_name
+    ) {
+        if(file_name == null || file_name.isEmpty()){
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        String videoFilePath = ConfigParams.ROOT_DIR + file_name;
+        System.out.println(videoFilePath);
+        Resource video = new FileSystemResource(videoFilePath);
+
+        return ResponseEntity.ok().
+                contentType(MediaType.parseMediaType("video/mp4")).
+                body(video);
     }
 }
