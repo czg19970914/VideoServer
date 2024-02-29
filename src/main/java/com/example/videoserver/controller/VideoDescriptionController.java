@@ -64,7 +64,9 @@ public class VideoDescriptionController {
                         if(thirdFile.isFile()) {
                             String subImageName =
                                     firstFile.getName() + "_" + secondFile.getName() + "_" + thirdFile.getName() + ".jpg";
-                            subVideoDescriptionEntities.add(new SubVideoDescriptionEntity(subImageName));
+                            String subVideoPath =
+                                    "/" + firstFile.getName() + "/" + secondFile.getName() + "/" + thirdFile.getName();
+                            subVideoDescriptionEntities.add(new SubVideoDescriptionEntity(subImageName, subVideoPath));
                         }
                     }
                     if(!subVideoDescriptionEntities.isEmpty()) {
@@ -77,7 +79,8 @@ public class VideoDescriptionController {
                 } else if (secondFile.isFile()) {
                     String title = firstFile.getName();
                     String imageName = firstFile.getName() + "_" + secondFile.getName() + ".jpg";
-                    subVideoDescriptionEntities.add(new SubVideoDescriptionEntity(imageName));
+                    String videoPath = "/" + firstFile.getName() + "/" + secondFile.getName();
+                    subVideoDescriptionEntities.add(new SubVideoDescriptionEntity(imageName, videoPath));
                     videoDescriptionEntities.add(
                             new VideoDescriptionEntity(title, imageName, subVideoDescriptionEntities));
                     addNameFlag = true;

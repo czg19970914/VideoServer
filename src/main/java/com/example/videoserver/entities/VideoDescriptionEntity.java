@@ -1,7 +1,6 @@
 package com.example.videoserver.entities;
 
 import java.util.List;
-import java.util.Map;
 
 public class VideoDescriptionEntity {
     // 该视频的标题

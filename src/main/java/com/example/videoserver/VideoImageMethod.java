@@ -46,7 +46,6 @@ public class VideoImageMethod {
                             videoImageTaskExecutor.execute(() -> {
                                 VideoImageUtils.fetchFrame(videoFilePath, targetFilePath);
                             });
-//                            VideoImageUtils.fetchFrame(videoFilePath, targetFilePath);
                         }
                     }
                 } else if (secondFile.isFile()) {
@@ -58,7 +57,6 @@ public class VideoImageMethod {
                     videoImageTaskExecutor.execute(() -> {
                         VideoImageUtils.fetchFrame(videoFilePath, targetFilePath);
                     });
-//                    VideoImageUtils.fetchFrame(videoFilePath, targetFilePath);
                 }
             }
         }

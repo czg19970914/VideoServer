@@ -46,6 +46,7 @@ public class VideoPlayerController {
     }
 
     /**使用: http://127.0.0.1:8080/videoPlay?file_name=/Bilibili/洛丽塔大哥/1.mp4 访问*/
+    /**专门给android端的MediaPlayer访问的**/
     @GetMapping(value = "/videoPlay")
     public ResponseEntity<Resource> videoPlay(
             @RequestParam(value = "file_name", required=false) String file_name

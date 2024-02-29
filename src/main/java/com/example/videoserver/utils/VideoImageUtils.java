@@ -16,7 +16,6 @@ public class VideoImageUtils {
     //参数：视频路径和缩略图保存路径
     public static void fetchFrame(String videofile, String framefile) {
         try {
-//            long start = System.currentTimeMillis();
             File targetFile = new File(framefile);
             FFmpegFrameGrabber ff = new FFmpegFrameGrabber(videofile);
             ff.start();
@@ -34,7 +33,6 @@ public class VideoImageUtils {
             ImageIO.write(FrameToBufferedImage(f), DEFAULT_IMG_FORMAT, targetFile);
             //ff.flush();
             ff.stop();
-//            System.out.println(System.currentTimeMillis() - start);
         } catch (Exception e) {
             System.out.println("获取视频有误：" + videofile);
             System.out.println(e.toString());
